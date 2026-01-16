@@ -37,6 +37,7 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<BookingResponseDTO> create(@Valid @RequestBody BookingRequestDTO booking) {
+
         BookingResponseDTO created = service.create(booking);
         URI location = URI.create("/api/bookings/" + created.id());
         return ResponseEntity.created(location).body(created);

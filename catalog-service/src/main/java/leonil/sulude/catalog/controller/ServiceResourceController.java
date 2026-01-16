@@ -2,9 +2,7 @@ package leonil.sulude.catalog.controller;
 
 import leonil.sulude.catalog.dto.ServiceResourceRequestDTO;
 import leonil.sulude.catalog.dto.ServiceResourceResponseDTO;
-import leonil.sulude.catalog.model.ServiceResource;
 import leonil.sulude.catalog.service.ServiceResourceService;
-import leonil.sulude.catalog.service.ServiceResourceServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

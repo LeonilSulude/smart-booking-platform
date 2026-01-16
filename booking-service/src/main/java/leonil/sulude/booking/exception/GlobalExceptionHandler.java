@@ -156,6 +156,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
     }
 
+
+    /**
+     * Handles booking conflicts where a resource is already reserved for the requested time period.
+     * <p>
+     * This exception is thrown when a booking attempt overlaps with an existing booking,
+     * indicating a violation of the availability rule.
+     * </p>
+     * Returns HTTP 409 (Conflict) to inform the client that the operation cannot proceed
+     * due to a scheduling conflict.
+     */
     @ExceptionHandler(BookingConflictException.class)
     public ResponseEntity<ApiError> handleConflict(BookingConflictException ex) {
         ApiError apiError = new ApiError(
@@ -168,6 +178,29 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
     }
+
+
+    /**
+     * Handles situations where a service resource is unavailable for booking.
+     * <p>
+     * This exception is thrown when the resource is marked as inactive or does not exist,
+     * meaning it cannot be used for the requested operation.
+     * </p>
+     * Returns HTTP 409 (Conflict) to signal that the action is not permitted
+     * due to the resource being unavailable.
+     */
+    @ExceptionHandler(ResourceUnavailableException.class)
+    public ResponseEntity<ApiError> handleResourceUnavailable(ResourceUnavailableException ex) {
+        ApiError apiError = new ApiError(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "Resource Unavailable",
+                ex.getMessage(),
+                LocalDateTime.now(),
+                Collections.emptyList()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(apiError);
+    }
+
 
 
 }
