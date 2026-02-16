@@ -27,9 +27,11 @@ public class LogEventProducer {
             String payload = objectMapper.writeValueAsString(event);
 
             rabbitTemplate.convertAndSend(
-                    RabbitMQConstants.LOG_QUEUE,
+                    RabbitMQConstants.LOG_EXCHANGE,
+                    RabbitMQConstants.LOG_ROUTING_KEY,
                     payload
             );
+
 
             log.debug(
                     "Log event sent | service={} | level={} | event={}",

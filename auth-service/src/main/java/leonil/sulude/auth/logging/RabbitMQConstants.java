@@ -4,6 +4,11 @@ public final class RabbitMQConstants {
 
     private RabbitMQConstants() {}
 
-    public static final String LOG_QUEUE = "app.logs.queue";
+    // Exchange
+    public static final String LOG_EXCHANGE = "app.logs.exchange";
+
+    // Routing key specific to auth-service
+    public static final String LOG_ROUTING_KEY = "app.logs.auth";
 }
+
 
