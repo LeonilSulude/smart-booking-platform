@@ -21,20 +21,8 @@ spring:
 # TEMPORARY: JWT secret is now hardcoded here to avoid Vault issues.
 security:
   jwt:
-    secret: uma-super-secret-key-com-pelo-menos-32-caracteres
+    secret: ${JWT_SECRET} # Loaded from environment variable
     expiration: 3600000  # JWT expiration time in milliseconds. 3600000 = 1 hour.
-
-# Vault config temporarily removed
-# spring:
-#   cloud:
-#     vault:
-#       uri: http://127.0.0.1:8200
-#       token: ${VAULT_TOKEN}
-#       authentication: TOKEN
-#       kv:
-#         enabled: true
-#         backend: secret
-#         default-context: security
 
 eureka:
   client:

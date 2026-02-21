@@ -29,7 +29,6 @@ spring:
               predicates:
                 - Path=/api/auth/**
 
-# TEMPORARY: JWT secret hardcoded as fallback (if needed)
 security:
   user:
     name: none
@@ -38,18 +37,8 @@ security:
     enabled: false
 
   jwt:
-    secret: uma-super-secret-key-com-pelo-menos-32-caracteres
-
-#  Vault config temporarily removed
-#   cloud:
-#     vault:
-#       uri: http://127.0.0.1:8200
-#       token: ${VAULT_TOKEN}
-#       authentication: TOKEN
-#       kv:
-#         enabled: true
-#         backend: secret
-#         default-context: security
+    # Loaded from environment variable
+    secret: ${JWT_SECRET}
 
 eureka:
   client:

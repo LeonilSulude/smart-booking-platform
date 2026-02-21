@@ -38,6 +38,11 @@ public class SecurityConfig {
                         // Allow open access to the auth service
                         .pathMatchers("/api/auth/**").permitAll()
 
+                        //TESTING
+                        .pathMatchers("/actuator/**").permitAll()
+                        .pathMatchers("/test").permitAll()
+
+
                         // All other routes require authentication
                         .anyExchange().authenticated()
                 )
