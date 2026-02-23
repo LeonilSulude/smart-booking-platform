@@ -4,6 +4,7 @@ import leonil.sulude.auth.dto.AuthRequest;
 import leonil.sulude.auth.dto.AuthResponse;
 import leonil.sulude.auth.dto.RegisterRequest;
 import leonil.sulude.auth.exception.EmailAlreadyExistsException;
+import leonil.sulude.auth.exception.InvalidCredentialsException;
 import leonil.sulude.auth.model.User;
 import leonil.sulude.auth.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -73,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new IllegalArgumentException("Invalid credentials");
+            throw new InvalidCredentialsException("Invalid credentials");
         }
 
         String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().name());

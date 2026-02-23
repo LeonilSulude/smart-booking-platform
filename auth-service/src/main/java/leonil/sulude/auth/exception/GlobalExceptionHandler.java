@@ -125,5 +125,34 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    /**
+     * Handles authentication failures caused by invalid credentials.
+     *
+     * This exception is thrown when a login attempt is made
+     * with incorrect email/password combination.
+     *
+     * Returns HTTP 401 Unauthorized to indicate
+     * that authentication has failed.
+     *
+     * IMPORTANT:
+     * The message should remain generic to avoid
+     * leaking information about which field was incorrect.
+     *
+     * @param ex the exception thrown for invalid login attempts
+     * @return structured API error response with 401 status
+     */
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiError> handleInvalidCredentials(InvalidCredentialsException ex) {
+
+        ApiError apiError = new ApiError(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                ex.getMessage(),
+                LocalDateTime.now(),
+                Collections.emptyList()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
+    }
 }
 
