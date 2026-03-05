@@ -17,45 +17,43 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     /**
-     * Handles deserialization errors, especially for invalid enum values.
-     * Example: when a request provides an unknown category.
+     * Handles errors that occur while parsing the HTTP request body.
+     *
+     * This typically happens when Jackson cannot deserialize the incoming JSON,
+     * such as malformed payloads, type mismatches, or errors thrown by custom
+     * deserializers (e.g. invalid enum values).
+     *
+     * If the root cause is an IllegalArgumentException coming from a custom
+     * deserializer, the request is treated as invalid input. Otherwise, the
+     * request is considered malformed JSON.
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiError> handleInvalidFormat(HttpMessageNotReadableException ex) {
-        Throwable cause = ex.getCause();
+    public ResponseEntity<ApiError> handleInvalidJson(HttpMessageNotReadableException ex) {
 
-        // Specific handling for enum parsing errors
-        if (cause instanceof InvalidFormatException formatException) {
-            String field = formatException.getPath().get(0).getFieldName();
-            String rejectedValue = String.valueOf(formatException.getValue());
+        Throwable cause = ex.getMostSpecificCause();
 
-            // Extract expected type (usually an enum) and possible values
-            String targetType = formatException.getTargetType().getSimpleName();
-            String validValues = "";
-            if (formatException.getTargetType().isEnum()) {
-                Object[] constants = formatException.getTargetType().getEnumConstants();
-                validValues = "Valid options: " + List.of(constants);
-            }
-
-            FieldErrorDetails error = new FieldErrorDetails(
-                    field,
-                    rejectedValue,
-                    "Invalid value for type " + targetType + ". " + validValues
-            );
+        // If the root cause is an IllegalArgumentException from our custom deserializer
+        if (cause instanceof IllegalArgumentException illegalArgument) {
 
             ApiError apiError = new ApiError(
                     HttpStatus.BAD_REQUEST.value(),
                     "Bad Request",
                     "Invalid input",
                     LocalDateTime.now(),
-                    List.of(error)
+                    List.of(
+                            new FieldErrorDetails(
+                                    "category",
+                                    null,
+                                    illegalArgument.getMessage()
+                            )
+                    )
             );
 
             return ResponseEntity.badRequest().body(apiError);
         }
 
-        // Generic fallback for other unreadable payloads (e.g. malformed JSON)
-        ApiError fallback = new ApiError(
+        // Fallback for malformed JSON
+        ApiError apiError = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
                 "Malformed request",
@@ -63,7 +61,34 @@ public class GlobalExceptionHandler {
                 Collections.emptyList()
         );
 
-        return ResponseEntity.badRequest().body(fallback);
+        return ResponseEntity.badRequest().body(apiError);
+    }
+
+    /**
+     * Handles IllegalArgumentException thrown by the application during request
+     * processing, usually caused by invalid input detected in services or
+     * business logic.
+     *
+     * Returns a standardized 400 Bad Request response.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex) {
+
+        ApiError apiError = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                "Invalid input",
+                LocalDateTime.now(),
+                List.of(
+                        new FieldErrorDetails(
+                                "category",
+                                null,
+                                ex.getMessage()
+                        )
+                )
+        );
+
+        return ResponseEntity.badRequest().body(apiError);
     }
 
     /**
