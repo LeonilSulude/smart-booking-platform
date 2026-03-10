@@ -29,6 +29,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll() // Allow registration & login
                         .requestMatchers("/test-secret").permitAll() // Allow registration & login
                         .requestMatchers("/actuator/**").permitAll() // Allow monitoring endpoints
+                        .requestMatchers("/swagger-ui/**",
+                                                  "/v3/api-docs/**").permitAll() // Allow Swagger UI and OpenAPI docs
                         .anyRequest().authenticated() // All other requests require authentication
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Register our custom JWT filter
