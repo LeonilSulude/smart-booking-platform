@@ -42,18 +42,16 @@ All services communicate via **REST APIs**.
 
 # System Architecture
 
-```
-Client 
-|
-v API Gateway (Spring Cloud Gateway) 
-|
-|------------------------------------------|
-|                     |                    | 
-Auth Service     Catalog Service     Booking Service 
-\                                         /
- \                                       /
-  --------Eureka Discovery Server-------
-```
+```mermaid
+graph TD
+Client --> Gateway
+Gateway --> Auth
+Gateway --> Catalog
+Gateway --> Booking
+Auth --> Eureka
+Catalog --> Eureka
+Booking --> Eureka
+Gateway --> Eureka
 
 The **API Gateway** acts as the entry point, forwarding requests to the
 appropriate services while enforcing authentication and routing.
