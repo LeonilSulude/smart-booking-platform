@@ -1,273 +1,244 @@
 # SmartBookingPlatform
 
-SmartBookingPlatform is a **microservices-based booking platform** built
-using **Spring Boot and Spring Cloud**. The system demonstrates a modern
-backend architecture with **service discovery, API gateway routing, JWT
-authentication, and load testing**.
+A **microservices-based booking platform** built with **Spring Boot and Spring Cloud**, demonstrating a modern backend architecture with service discovery, API gateway routing, JWT authentication, and load testing.
 
-The project was designed as a learning and architecture exercise to
-explore distributed systems concepts commonly used in production
-environments.
+> Designed as a learning and architecture exercise to explore distributed systems concepts commonly used in production environments.
 
-------------------------------------------------------------------------
+---
 
-# Architecture Overview
+## Features
 
-The platform follows a **microservices architecture**, where each
-service is responsible for a specific business capability.
+- Microservices architecture
+- API Gateway routing
+- JWT authentication
+- Service discovery with Eureka
+- Resilient service-to-service communication
+- Load testing with k6
 
-Services included:
+---
 
-  -----------------------------------------------------------------------
-  Service                             Responsibility
-  ----------------------------------- -----------------------------------
-  API Gateway                         Single entry point for clients,
-                                      routing and authentication
+## Table of Contents
 
-  Auth Service                        User registration and JWT
-                                      authentication
+- [Architecture Overview](#architecture-overview)
+- [Technologies Used](#technologies-used)
+- [API Gateway Routing](#api-gateway-routing)
+- [Authentication Flow](#authentication-flow)
+- [API Documentation](#api-documentation)
+- [Running the Platform](#running-the-platform)
+- [Load Testing](#load-testing)
+- [Project Structure](#project-structure)
+- [Design Principles](#design-principles)
+- [Known Limitations & Future Work](#known-limitations--future-work)
 
-  Catalog Service                     Management of service offers and
-                                      resources
+---
 
-  Booking Service                     Booking creation and availability
+## Architecture Overview
 
-  Discovery Service                   Service registry using Netflix
-                                      Eureka
-  -----------------------------------------------------------------------
+The platform follows a microservices architecture where each service owns a specific business capability. All services communicate via REST APIs using OpenFeign clients and register with the Eureka Discovery Server for dynamic service resolution.
 
-All services communicate via **REST APIs**.
+| Service | Responsibility |
+|---|---|
+| **API Gateway** | Single entry point — routing and authentication |
+| **Auth Service** | User registration and JWT authentication |
+| **Catalog Service** | Management of service offers and resources |
+| **Booking Service** | Booking creation and availability |
+| **Discovery Service** | Service registry using Netflix Eureka |
 
-------------------------------------------------------------------------
-
-# System Architecture
+### System Diagram
 
 ```mermaid
 graph TD
+  Client[Client Application]
+  Gateway[API Gateway<br>Spring Cloud Gateway]
+  Auth[Auth Service]
+  Catalog[Catalog Service]
+  Booking[Booking Service]
+  Eureka[Eureka Service Discovery]
 
-Client[Client Application]
+  Client --> Gateway
 
-Gateway[API Gateway<br>Spring Cloud Gateway]
+  Gateway -->|/api/auth| Auth
+  Gateway -->|/api/offers| Catalog
+  Gateway -->|/api/resources| Catalog
+  Gateway -->|/api/bookings| Booking
 
-Auth[Auth Service]
-Catalog[Catalog Service]
-Booking[Booking Service]
-
-Eureka[Eureka Service Discovery]
-
-Client --> Gateway
-
-Gateway -->|/api/auth| Auth
-Gateway -->|/api/offers| Catalog
-Gateway -->|/api/resources| Catalog
-Gateway -->|/api/bookings| Booking
-
-Auth --> Eureka
-Catalog --> Eureka
-Booking --> Eureka
-Gateway --> Eureka
+  Auth --> Eureka
+  Catalog --> Eureka
+  Booking --> Eureka
+  Gateway --> Eureka
 ```
 
-The **API Gateway** acts as the entry point, forwarding requests to the
-appropriate services while enforcing authentication and routing.
+The **API Gateway** acts as the single entry point, forwarding requests to the appropriate services while enforcing authentication. All services register with the **Eureka Discovery Server** and are resolved dynamically at runtime.
 
-All services register with the **Eureka Discovery Server**.
-Service locations are resolved dynamically via service discovery.
+---
 
-------------------------------------------------------------------------
+## Technologies Used
 
-# Technologies Used
+### Backend
+- Java 21
+- Spring Boot, Spring Web, Spring Data JPA, Spring Security
 
-## Backend
+### Microservices Infrastructure
+- Spring Cloud Gateway
+- Netflix Eureka (Service Discovery)
+- OpenFeign
 
--   Java 21
--   Spring Boot
--   Spring Web
--   Spring Data JPA
--   Spring Security
+### Security
+- JWT Authentication
+- Spring Security
 
-## Microservices Infrastructure
+### Data
+- PostgreSQL
+- Hibernate / JPA
 
--   Spring Cloud Gateway
--   Netflix Eureka (Service Discovery)
--   OpenFeign
+### Messaging
+- RabbitMQ — used for log and event streaming
 
-## Security
+### Testing
+- JUnit, WebTestClient, Mockito
+- k6 — load testing
 
--   JWT Authentication
--   Spring Security
+### Documentation
+- Swagger / OpenAPI
 
-## Data
+---
 
--   PostgreSQL
--   Hibernate / JPA
+## API Gateway Routing
 
-## Messaging
+All requests enter through the gateway at `http://localhost:8080`. Protected routes require a valid JWT token issued by the Auth Service.
 
--   RabbitMQ (used for log/event streaming)
+| Route | Target Service |
+|---|---|
+| `/api/auth/**` | Auth Service |
+| `/api/offers/**` | Catalog Service |
+| `/api/resources/**` | Catalog Service |
+| `/api/bookings/**` | Booking Service |
 
-## Testing
+---
 
--   JUnit
--   WebTestClient
--   Mockito
--   k6 (load testing)
+## Authentication Flow
 
-## Documentation
+1. Client registers via `POST /api/auth/register`
+2. Auth Service validates credentials and returns a JWT token
+3. Client includes the token in subsequent requests:
+   ```
+   Authorization: Bearer <JWT_TOKEN>
+   ```
+4. API Gateway validates the token before routing the request
 
--   Swagger / OpenAPI
+---
 
-------------------------------------------------------------------------
+## API Documentation
 
-# API Gateway Routing
+Swagger UI is available per service while the platform is running:
 
-  Route                 Service
-  --------------------- -----------------
-  /api/auth/\*\*        Auth Service
-  /api/offers/\*\*      Catalog Service
-  /api/resources/\*\*   Catalog Service
-  /api/bookings/\*\*    Booking Service
+| Service | Swagger URL |
+|---|---|
+| Auth Service | http://localhost:8081/swagger-ui.html |
+| Catalog Service | http://localhost:8082/swagger-ui.html |
+| Booking Service | http://localhost:8083/swagger-ui.html |
 
-All protected routes require a **JWT token**, issued by the **Auth
-Service**.
+---
 
-------------------------------------------------------------------------
+## Running the Platform
 
-# Authentication Flow
+### Start
 
-1.  Client registers using `/api/auth/register`
-2.  Auth Service validates credentials and returns a JWT token
-3.  Client sends requests with:
-
-Authorization: Bearer `<JWT_TOKEN>`{=html}
-
-4.  API Gateway validates the token and routes the request.
-
-------------------------------------------------------------------------
-
-# API Documentation
-
-Swagger UI is available for each service:
-
-  Service           URL
-  ----------------- ---------------------------------------
-  Auth Service      http://localhost:8081/swagger-ui.html
-  Catalog Service   http://localhost:8082/swagger-ui.html
-  Booking Service   http://localhost:8083/swagger-ui.html
-
-------------------------------------------------------------------------
-
-# Running the Platform
-
-Start the platform:
-
+```bash
 ./start-platform.sh
+```
 
-This script will: 1. Start infrastructure using Docker 2. Launch all
-microservices 3. Wait for services to become available
+This script will:
+1. Start infrastructure services using Docker
+2. Launch all microservices
+3. Wait until all services become available
 
-Gateway URL:
+Gateway is available at: `http://localhost:8080`
 
-http://localhost:8080
+### Stop
 
-------------------------------------------------------------------------
-
-Stop the platform:
-
+```bash
 ./stop-platform.sh
+```
 
-This terminates all running services and containers.
+Terminates all running services and containers.
 
-------------------------------------------------------------------------
+---
 
-# Load Testing
+## Load Testing
 
-Load testing was performed using **k6**.
+Load testing is performed using **[k6](https://k6.io)**. Three scenarios are included:
 
-Test scenarios:
-
-Authentication Baseline Test\
+**Authentication Baseline Test**
 Simulates concurrent user registration and login.
 
-Catalog Load Test\
+**Catalog Load Test**
 Simulates multiple users querying service offers.
 
-Booking Flow Test\
-Simulates authentication, offer retrieval, and booking creation.
+**Booking Flow Test**
+Simulates the full flow: authentication → offer retrieval → booking creation.
 
-Example command:
-
+Run a test:
+```bash
 k6 run k6-tests/catalog-load-test.js
+```
 
-------------------------------------------------------------------------
+---
 
-# Project Structure
+## Project Structure
 
-SmartBookingPlatform_V1
+```
+SmartBookingPlatform_V1/
+├── api-gateway/
+├── auth-service/
+├── catalog-service/
+├── booking-service/
+├── discovery-service/
+├── k6-tests/
+├── docker-compose.yaml
+├── start-platform.sh
+└── stop-platform.sh
+```
 
-api-gateway/ auth-service/ catalog-service/ booking-service/
-discovery-service/
+Each microservice follows a layered architecture:
 
-k6-tests/
+```
+├── controller/
+├── service/
+├── repository/
+├── model/
+└── dto/
+```
 
-start-platform.sh stop-platform.sh docker-compose.yaml
+---
 
-Each service follows a layered architecture:
+## Design Principles
 
-controller\
-service\
-repository\
-model\
-dto
+- **Service autonomy** — each service owns its data and logic
+- **Loose coupling** — services interact only via APIs
+- **Stateless authentication** — JWT-based, no server-side session
+- **Centralized entry** — all traffic flows through the API Gateway
+- **Independent scalability** — each service can scale on its own
 
-------------------------------------------------------------------------
+---
 
-# Design Principles
+## Known Limitations & Future Work
 
--   Service autonomy
--   Loose coupling via APIs
--   Stateless authentication with JWT
--   Centralized entry through API Gateway
--   Independent scalability of services
+### V1 — Current Limitations
 
-------------------------------------------------------------------------
+This version focuses on architecture fundamentals. The following are known gaps:
 
-# Known Limitations (V1)
+- No Kubernetes orchestration
+- No centralized logging
+- No distributed tracing
+- No CI/CD pipeline
 
-This version focuses on architecture fundamentals.
+### V2 — Planned Improvements
 
-Limitations include:
-
--   No Kubernetes orchestration
--   No centralized logging
--   No distributed tracing
--   No CI/CD pipeline
--   Limited resilience patterns
-
-------------------------------------------------------------------------
-
-# Future Improvements (V2)
-
-Planned improvements:
-
--   Docker images for all services
--   Kubernetes deployment
--   Observability stack (Prometheus + Grafana)
--   Distributed tracing
--   CI/CD pipeline
--   Resilience patterns (retry, circuit breaker)
-
-------------------------------------------------------------------------
-
-# Purpose of the Project
-
-This project explores real-world backend architecture concepts:
-
--   Microservices architecture
--   API Gateway design
--   Authentication and security
--   Service discovery
--   Load testing and performance evaluation
-
-The goal is to understand the **trade-offs and operational concerns of
-distributed systems**.
+| Area | Planned Change |
+|---|---|
+| Containerization | Docker images for all services |
+| Orchestration | Kubernetes deployment |
+| Observability | Prometheus + Grafana stack |
+| Tracing | Distributed tracing |
+| Delivery | CI/CD pipeline |

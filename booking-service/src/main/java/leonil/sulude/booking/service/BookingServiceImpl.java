@@ -1,5 +1,7 @@
 package leonil.sulude.booking.service;
 
+import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import leonil.sulude.booking.dto.BookingRequestDTO;
 import leonil.sulude.booking.dto.BookingResponseDTO;
 import leonil.sulude.booking.dto.ServiceResourceResponseDTO;
@@ -25,7 +27,6 @@ public class BookingServiceImpl implements BookingService {
     public BookingServiceImpl(BookingRepository repository, CatalogClient catalogClient) {
         this.repository = repository;
         this.catalogClient = catalogClient;
-
     }
 
     @Override
@@ -43,19 +44,20 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponseDTO create(BookingRequestDTO dto) {
 
-        //Check if there is conflict for the booked time
+        // Check if there is conflict for the booked time
         boolean hasConflict = repository.existsOverlappingBooking(dto.resourceId(), dto.startTime(), dto.endTime());
         if (hasConflict) {
             throw new BookingConflictException("Resource is already booked during this time.");
         }
 
-        //Check if resource booked is active
-        ServiceResourceResponseDTO resource = catalogClient.getResourceById(dto.resourceId());
+        // Retrieve resource from Catalog Service (protected by resilience patterns)
+        ServiceResourceResponseDTO resource = fetchResource(dto.resourceId());
+
         if (resource == null || !resource.active()) {
             throw new ResourceUnavailableException("Service resource is not available for booking");
         }
 
-        // Check if the reservation conflicts with periods of unavailability.
+        // Check if the reservation conflicts with periods of unavailability
         boolean unavailableConflict = resource.unavailablePeriods() != null &&
                 resource.unavailablePeriods().stream().anyMatch(period ->
                         dto.startTime().isBefore(period.endTime()) &&
@@ -65,7 +67,6 @@ public class BookingServiceImpl implements BookingService {
         if (unavailableConflict) {
             throw new ResourceUnavailableException("Resource is unavailable during the selected time.");
         }
-
 
         Booking booking = new Booking();
         booking.setResourceId(dto.resourceId());
@@ -93,8 +94,6 @@ public class BookingServiceImpl implements BookingService {
         );
     }
 
-
-
     @Override
     public boolean delete(UUID id) {
         if (repository.existsById(id)) {
@@ -105,7 +104,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private BookingResponseDTO mapToResponseDTO(Booking booking) {
-        ServiceResourceResponseDTO resource = catalogClient.getResourceById(booking.getResourceId());
+
+        ServiceResourceResponseDTO resource = fetchResource(booking.getResourceId());
+
         return new BookingResponseDTO(
                 booking.getId(),
                 booking.getResourceId(),
@@ -119,6 +120,25 @@ public class BookingServiceImpl implements BookingService {
                 resource != null ? resource.price() : null,
                 resource != null ? resource.durationInMinutes() : null
         );
+    }
+
+    /**
+     * Retrieves resource data from the Catalog Service.
+     * Protected by Resilience4j retry and circuit breaker mechanisms
+     * to improve reliability of inter-service communication.
+     */
+    @CircuitBreaker(name = "catalogService", fallbackMethod = "catalogFallback")
+    @Retry(name = "catalogService")
+    public ServiceResourceResponseDTO fetchResource(UUID resourceId) {
+        return catalogClient.getResourceById(resourceId);
+    }
+
+    /**
+     * Fallback method executed when the Catalog Service is unavailable
+     * after retries or when the circuit breaker is open.
+     */
+    public ServiceResourceResponseDTO catalogFallback(UUID resourceId, Throwable ex) {
+        throw new ResourceUnavailableException("Catalog service unavailable");
     }
 
 }
