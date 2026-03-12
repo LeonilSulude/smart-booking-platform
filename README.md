@@ -53,13 +53,14 @@ Auth[Auth Service]
 Catalog[Catalog Service]
 Booking[Booking Service]
 
-Eureka[Eureka Discovery Server]
+Eureka[Eureka Service Discovery]
 
 Client --> Gateway
 
-Gateway --> Auth
-Gateway --> Catalog
-Gateway --> Booking
+Gateway -->|/api/auth| Auth
+Gateway -->|/api/offers| Catalog
+Gateway -->|/api/resources| Catalog
+Gateway -->|/api/bookings| Booking
 
 Auth --> Eureka
 Catalog --> Eureka
