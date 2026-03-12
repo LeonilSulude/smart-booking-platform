@@ -42,6 +42,7 @@ All services communicate via **REST APIs**.
 
 # System Architecture
 
+```
 Client 
 |
 v API Gateway (Spring Cloud Gateway) 
@@ -52,7 +53,7 @@ Auth Service     Catalog Service     Booking Service
 \                                         /
  \                                       /
   --------Eureka Discovery Server-------
-           
+```
 
 The **API Gateway** acts as the entry point, forwarding requests to the
 appropriate services while enforcing authentication and routing.
