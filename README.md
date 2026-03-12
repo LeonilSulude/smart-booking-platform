@@ -44,14 +44,28 @@ All services communicate via **REST APIs**.
 
 ```mermaid
 graph TD
+
+Client[Client Application]
+
+Gateway[API Gateway<br>Spring Cloud Gateway]
+
+Auth[Auth Service]
+Catalog[Catalog Service]
+Booking[Booking Service]
+
+Eureka[Eureka Discovery Server]
+
 Client --> Gateway
+
 Gateway --> Auth
 Gateway --> Catalog
 Gateway --> Booking
+
 Auth --> Eureka
 Catalog --> Eureka
 Booking --> Eureka
 Gateway --> Eureka
+```
 
 The **API Gateway** acts as the entry point, forwarding requests to the
 appropriate services while enforcing authentication and routing.
