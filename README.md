@@ -203,11 +203,14 @@ SmartBookingPlatform_V1/
 Each microservice follows a layered architecture:
 
 ```
-├── controller/
-├── service/
-├── repository/
-├── model/
-└── dto/
+├──config/       → application and security configuration
+├──controller/   → REST endpoints
+├──service/      → business logic
+├──repository/   → data access layer
+├──model/        → domain entities
+├──dto/          → API request/response objects including request validation
+├──exception/    → custom domain exceptions
+└──logging/      → logging filters and interceptors
 ```
 
 ---
