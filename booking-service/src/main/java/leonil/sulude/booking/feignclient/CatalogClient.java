@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.UUID;
 
 @FeignClient(
-        name = "catalog-service", // name = spring.application.name of the other service
-        fallback = CatalogClientFallback.class //Fallback class for cases catalog is down
+        name = "catalog-service" // name = spring.application.name of the other service
 )
 
 public interface CatalogClient {
