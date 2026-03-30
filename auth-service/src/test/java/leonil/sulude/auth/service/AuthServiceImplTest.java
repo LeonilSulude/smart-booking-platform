@@ -3,6 +3,7 @@ package leonil.sulude.auth.service;
 import leonil.sulude.auth.dto.AuthRequest;
 import leonil.sulude.auth.dto.RegisterRequest;
 import leonil.sulude.auth.exception.EmailAlreadyExistsException;
+import leonil.sulude.auth.exception.InvalidCredentialsException;
 import leonil.sulude.auth.model.Role;
 import leonil.sulude.auth.model.User;
 import leonil.sulude.auth.repository.UserRepository;
@@ -212,7 +213,7 @@ class AuthServiceImplTest {
         when(passwordEncoder.matches("wrongPassword", "encodedPassword"))
                 .thenReturn(false);
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(InvalidCredentialsException.class,
                 () -> authService.authenticate(request));
     }
 }
