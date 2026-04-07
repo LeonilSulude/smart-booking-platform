@@ -57,6 +57,7 @@ start_service "auth-service" "auth-service"
 start_service "catalog-service" "catalog-service"
 start_service "booking-service" "booking-service"
 start_service "api-gateway" "api-gateway"
+start_service "log-service" "log-service"
 
 
 echo ""
@@ -67,6 +68,7 @@ wait_for_port 8081 "Auth Service"
 wait_for_port 8082 "Catalog Service"
 wait_for_port 8083 "Booking Service"
 wait_for_port 8080 "API Gateway"
+wait_for_port 8090 "Log Service"
 
 
 echo ""
@@ -75,3 +77,4 @@ echo ""
 echo "Services:"
 echo "Eureka:      http://localhost:8761"
 echo "Gateway:     http://localhost:8080"
+echo "Log Service:  http://localhost:8090/actuator/health"
